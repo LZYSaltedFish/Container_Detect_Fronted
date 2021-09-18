@@ -141,7 +141,7 @@ function createRequest (service) {
         'Content-Type': get(config, 'headers.Content-Type', 'application/json')
       },
       timeout: 50000,
-      baseURL: 'http://134.175.62.214:8987',
+      baseURL: 'http://134.175.62.214:5001',
       data: {}
     }
     const option = Object.assign(configDefault, config)
