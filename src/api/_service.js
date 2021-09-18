@@ -140,8 +140,8 @@ function createRequest (service) {
         Authorization: 'Bearer ' + token,
         'Content-Type': get(config, 'headers.Content-Type', 'application/json')
       },
-      timeout: 5000,
-      baseURL: 'http://localhost:5000',
+      timeout: 50000,
+      baseURL: 'http://134.175.62.214:8987',
       data: {}
     }
     const option = Object.assign(configDefault, config)

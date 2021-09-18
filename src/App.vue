@@ -6,10 +6,10 @@
       <img class="container_image" :src="image">
     </div>
     <div style="padding-bottom: 50px">
-      <a-button type="primary" @click="handleUploadImage">上传图片</a-button>
+      <a-button type="primary" @click="handleUploadImage" :loading="loading">上传图片</a-button>
     </div>
     <div align="center" style="padding: 20px">
-      <a-table :columns="columns" :data-source="data" style="width: 50%">
+      <a-table :columns="columns" :data-source="tableData" style="width: 50%">
       </a-table>
     </div>
   <input type="file" id="uploadImage" style="visibility: hidden" accept=".jpg,.png,.jpeg,.gif" @change="handleImageChange"/>
@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import { GET_DATA } from '@/api/demo'
+import { UPLOAD_IMAGE } from '@/api/demo'
 
 export default {
   name: 'App',
@@ -38,58 +38,58 @@ export default {
           align: 'center'
         }
       ],
-      data: [
-        {
-          key: '1',
-          index: '1',
-          number: 'SEGU 751498 1'
-        },
-        {
-          key: '2',
-          index: '2',
-          number: 'AIGU 873657 4'
-        },
-        {
-          key: '3',
-          index: '3',
-          number: '22G1'
-        }
-      ]
+      tableData: [],
+      loading: false
     }
   },
   methods: {
     handleUploadImage () {
       document.getElementById('uploadImage').click()
     },
+    GetExtensionFileName (name) {
+      return name.split('.')[1]
+    },
     handleImageChange (e) {
-      GET_DATA().then((res) => {
-        console.log('===> 获取到结果: ', res)
-      }).catch((e) => {
-        this.$message.error(e)
-      })
       console.log('===> 上传图片')
-      // e.preventDefault()
-      // const SuffixName = this.GetExtensionFileName(e.target.value)
-      // if (SuffixName !== 'jpg' && SuffixName !== 'png' && SuffixName !== 'jpeg' && SuffixName !== 'gif') {
-      //   this.$message.error('请上传正确格式的图片')
-      //   return
-      // }
-      // const Files = e.target.files[0]
-      // console.log(e.target.files[0].size)
-      // if (Files.size > 5 * 1024 * 1024) { // 此处判断上传文件的大小 , 单位为 b 故要乘以两个1024
-      //   this.$message.error('图片最大为5M')
-      //   this.$refs.uploadImg.value = null
-      // }
-      // if (typeof (Files) !== 'undefined') {
-      //   console.log('======>>Files', Files)
-      //   if (window.FileReader) { // 看支持不支持FileReader
-      //     const reader = new FileReader()
-      //     reader.readAsDataURL(Files) // 这里是最关键的一步，转换就在这里 （参数必须是blob对象）
-      //     reader.onloadend = function () {
-      //       this.image = this.result
-      //     }
-      //   }
-      // }
+      e.preventDefault()
+      const SuffixName = this.GetExtensionFileName(e.target.value)
+      if (SuffixName !== 'jpg' && SuffixName !== 'png' && SuffixName !== 'jpeg' && SuffixName !== 'gif') {
+        this.$message.error('请上传正确格式的图片')
+        return
+      }
+      const Files = e.target.files[0]
+      console.log(e.target.files[0].size)
+      if (Files.size > 5 * 1024 * 1024) { // 此处判断上传文件的大小 , 单位为 b 故要乘以两个1024
+        this.$message.error('图片最大为5M')
+        this.$refs.uploadImg.value = null
+      }
+      if (typeof (Files) !== 'undefined') {
+        this.loading = true
+        const param = new FormData()
+        param.set('file', Files)
+        UPLOAD_IMAGE(param).then((result) => {
+          console.log('===> 上传集装箱图片成功： ', result)
+          if (result.msg === '检测成功!') {
+            console.log('======>>Files', Files)
+            // 插入编号数据到表格
+            this.tableData = []
+            var count = 1
+            for (var text of result.number_list) {
+              const temp = {}
+              temp.key = count
+              temp.index = count
+              temp.number = text
+              this.tableData.push(temp)
+              count += 1
+            }
+            var url = window.URL.createObjectURL(Files)
+            this.image = url
+          }
+          this.loading = false
+        }).catch((err) => {
+          this.$message.error(err)
+        })
+      }
     }
   }
 }
